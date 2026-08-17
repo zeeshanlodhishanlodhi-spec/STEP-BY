@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Real server-side auth: admin login goes through Firebase
+    // Authentication (see src/App.jsx + Firebase Console → Authentication).
+    // These rules are enforced by Firebase's servers, not the browser —
+    // a signed-out visitor genuinely cannot write products or read orders,
+    // no matter what they do in devtools.
+
+    // Each product is its own document (previously all products were
+    // crammed into one document as a big array, which silently failed to
+    // save once it neared Firestore's 1MB-per-document limit).
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Each order is its own document too, created with its own ID at
+    // checkout. A checkout customer is never signed in, so they may only
+    // CREATE an order — never read, update, or delete one back. Only a
+    // signed-in admin can list/read them, since they hold customer names,
+    // phone numbers and addresses.
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    // Legacy path from before the per-document restructure. Kept
+    // read/writable by a signed-in admin only, so any leftover old
+    // "stepby/products" or "stepby/orders" doc can still be migrated or
+    // cleaned up — never by the public. (The one exception: the old
+    // products doc stays publicly readable too, since the one-time
+    // migration in src/App.jsx runs for any visitor, not just the admin.)
+    match /stepby/{docId} {
+      allow read: if docId == "products" || request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Everything else is fully locked down.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
