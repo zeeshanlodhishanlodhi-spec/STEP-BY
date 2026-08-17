@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>STEPBY — Step Into Style</title>
+
+  <!-- Opens the connection to these servers early (DNS + TLS handshake),
+       before the browser even knows it needs them — shaves real time off
+       loading product photos (Cloudinary), live data (Firestore/Firebase
+       Auth), and the placeholder/banner photos (Unsplash). -->
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+
+  <!-- Tells the browser to start downloading the big hero banner photo
+       immediately, in parallel with the page's JS/CSS, instead of waiting
+       until React has rendered before it even notices the image exists. -->
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1800&q=80" />
 </head>
 <body>
   <div id="root"></div>
